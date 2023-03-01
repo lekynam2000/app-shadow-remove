@@ -20,6 +20,7 @@ class MaskShadowGAN_remover:
         self.netG_A2B.load_state_dict(torch.load(pretrained_path))
         self.device = device
         self.netG_A2B.to(self.device)
+        self.netG_A2B.eval()
         self.to_pil = transforms.ToPILImage()
 
     def remove_shadow(self,img):
