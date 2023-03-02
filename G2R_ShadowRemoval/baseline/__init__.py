@@ -1,19 +1,18 @@
 #!/usr/bin/python3
 import os
+import sys
 import torchvision.transforms as transforms
 import torch
 from PIL import Image
 import numpy as np
-from model import Generator_S2F, Generator_F2S
+from G2R_ShadowRemoval.baseline.model import Generator_S2F, Generator_F2S
 from skimage import io, color
 from skimage.transform import resize
-from BDRAR import BDRAR_detector
-
-netG_A2B = Generator_S2F(3,3)
-
+from G2R_ShadowRemoval.baseline.BDRAR import BDRAR_detector
     
-class MaskShadowGAN_remover:
+class G2R_remover:
     def __init__(self,device="cuda:0",I_path=os.path.join("G2R_ShadowRemoval","baseline","netG_1.pth"),R_path=os.path.join("G2R_ShadowRemoval","baseline","netG_2.pth")) -> None:
+        self.original_transform = transforms.Resize((480,640))
         self.img_transform = transforms.Compose([
         transforms.Resize((400,400), Image.BICUBIC),
         transforms.ToTensor(),
@@ -24,21 +23,17 @@ class MaskShadowGAN_remover:
         self.netG_1.load_state_dict(torch.load(I_path))
         self.netG_2.load_state_dict(torch.load(R_path))
         self.device = device
-        self.netG_A2B.to(self.device)
+        self.netG_1.to(self.device)
+        self.netG_2.to(self.device)
+        self.netG_1.eval()
+        self.netG_2.eval()
         self.to_pil = transforms.ToPILImage()
 
-        detector_pretrained = os.path.join("G2R_ShadowRemoval","BDRAR","ckpt","BDRAR","3000.pth")
+        detector_pretrained = os.path.join("G2R_ShadowRemoval","baseline","BDRAR","ckpt","BDRAR","3000.pth")
         self.detector = BDRAR_detector(pretrained_path=detector_pretrained,device=self.device)
 
-    def remove_shadow(self,img):
-        w, h = img.size
-        img_var = (self.img_transform(img).unsqueeze(0)).to(self.device)
-        temp_B = self.netG_A2B(img_var)
-        fake_B = 0.5*(temp_B.data + 1.0)
-        fake_B = np.array(transforms.Resize((h, w))(self.to_pil(fake_B.data.squeeze(0).cpu())))
-        return Image.fromarray(fake_B)
-
-    def complex_process(self,image):
+    def remove_shadow(self,image):
+        image=self.original_transform(image)
         rgbimage=np.asarray(image)
         labimage = color.rgb2lab(rgbimage)   
         labimage480=resize(labimage,(480,640,3))
@@ -86,4 +81,8 @@ class MaskShadowGAN_remover:
         mask = np.expand_dims(mask, axis=2)
         mask = np.concatenate((mask, mask, mask), axis=-1)
         outputimage=fake_B480*mask+rgbimage*(mask-1.0)*(-1.0)/255.0
-        return outputimage,mask
+        outputimage = (255*outputimage).astype('uint8')
+        mask = (255*mask).astype('uint8')
+        return {"img":Image.fromarray(outputimage),
+                 "mask":Image.fromarray(mask)
+                }

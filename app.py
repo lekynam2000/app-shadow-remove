@@ -1,10 +1,13 @@
 import streamlit as st
 from PIL import Image
 from MaskShadowGAN.baseline import MaskShadowGAN_remover
+from G2R_ShadowRemoval.baseline import G2R_remover
 
-model_list = {}
+model_list = {
+    "MSGAN_remover": MaskShadowGAN_remover(),
+    "G2R_remover": G2R_remover(device="cuda:3")
+}
 
-MSGAN_remover = MaskShadowGAN_remover()
 
 # Set up the UI
 st.title("Shadow Removal Application")
@@ -18,15 +21,13 @@ if uploaded_file is not None:
     st.subheader("Original Image")
     st.image(img, use_column_width=True)
 
-    # Choose filter and intensity
-    # filter_name = st.selectbox("Choose a filter:", ('Blur', 'Contour', 'Brightness', 'Sharpness'))
-    # if filter_name == 'Brightness' or filter_name == 'Sharpness':
-    #     intensity = st.slider("Intensity", 0.0, 2.0, 1.0, 0.1)
-    # else:
-    #     intensity = None
+    algorithm = st.selectbox("Choose Removal Algorithm:", model_list.keys())
+    
 
     # Remove Shadow
     if st.button("Remove Shadow"):
-        processed_img = MSGAN_remover.remove_shadow(img)
-        st.subheader("Processed Image")
-        st.image(processed_img, use_column_width=True)
+        output = model_list[algorithm].remove_shadow(img)
+        st.subheader(f"{algorithm} output:")
+        st.image(output["img"], use_column_width=True)
+        if "mask" in output.keys():
+            st.image(output["mask"], use_column_width=True)

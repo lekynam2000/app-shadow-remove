@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from utils import weights_init_normal
+from G2R_ShadowRemoval.baseline.utils import weights_init_normal
 import torch
 
 class ResidualBlock(nn.Module):

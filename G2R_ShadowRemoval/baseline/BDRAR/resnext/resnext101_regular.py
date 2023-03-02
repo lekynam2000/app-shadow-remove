@@ -1,9 +1,10 @@
 import torch
 from torch import nn
-
-import resnext_101_32x4d_
+import sys
+sys.path.append("G2R_ShadowRemoval/baseline/BDRAR/resnext")
+import resnext_101_32x4d_ as resnext_101_32x4d_
 from config import resnext_101_32_path
-
+sys.path.pop()
 
 class ResNeXt101(nn.Module):
     def __init__(self):

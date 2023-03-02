@@ -1,6 +1,7 @@
 import numpy as np
 import os
-
+import sys
+sys.path.append("G2R_ShadowRemoval/baseline/BDRAR")
 import torch
 from PIL import Image
 from torch.autograd import Variable
@@ -9,6 +10,7 @@ from torchvision import transforms
 from config import sbu_testing_root
 from misc import check_mkdir, crf_refine
 from model import BDRAR
+sys.path.pop()
 
 class BDRAR_detector:
     def __init__(self,pretrained_path="",device="cpu"):
