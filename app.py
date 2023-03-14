@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 from PIL import Image
 from MaskShadowGAN.baseline import MaskShadowGAN_remover
@@ -5,7 +6,10 @@ from G2R_ShadowRemoval.baseline import G2R_remover
 
 model_list = {
     "MSGAN_remover": MaskShadowGAN_remover(),
-    "G2R_remover": G2R_remover(device="cuda:3")
+    "MSGAN_remover addLoss": MaskShadowGAN_remover(pretrained_path=os.path.join("MaskShadowGAN","addLoss","netG_addLoss.pth")),
+    "MSGAN_remover change strategy": MaskShadowGAN_remover(pretrained_path=os.path.join("MaskShadowGAN","change_strategy","net_change_strategy.pth")),
+    "G2R_remover": G2R_remover(device="cuda:3"),
+
 }
 
 
