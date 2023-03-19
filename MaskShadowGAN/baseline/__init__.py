@@ -23,7 +23,8 @@ class MaskShadowGAN_remover:
     def remove_shadow(self,img):
         w, h = img.size
         img_var = (self.img_transform(img).unsqueeze(0)).to(self.device)
-        temp_B = self.netG_A2B(img_var)
+        with torch.no_grad():
+            temp_B = self.netG_A2B(img_var)
         fake_B = 0.5*(temp_B.data + 1.0)
         fake_B = np.array(transforms.Resize((h, w))(self.to_pil(fake_B.data.squeeze(0).cpu())))
         return {"img":Image.fromarray(fake_B)}
